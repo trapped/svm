@@ -1,0 +1,29 @@
+# [PackageDev] target_format: plist, ext: tmLanguage
+---
+name: SVM Assembly
+scopeName: source.asm.svm
+fileTypes: [svmasm]
+uuid: 0dee0675-21ba-461a-b0f4-2dd46e107831
+
+patterns:
+- name: comment.line
+  match: \#.*$
+
+- name: constant.numeric
+  match: '[0-9]+'
+
+- name: constant.language.registers.general_purpose
+  match: \%[rR][0-9]+
+
+- name: keyword.mnemonic.svm
+  match: \b(add|sub|mul|div|mov|ret|call|write)\b
+
+- name: meta.function
+  match: '(?<funcname>\w+):(?: ?(?<argname>\w+)?\.(?<argtype>\w+)(?: *= *(?:,?(?<argvalue>\w+))*)?)?'
+  captures:
+    '1': {name: entity.name.function}
+    '2': {name: variable.parameter}
+    '3': {name: storage.type}
+    '4': {name: variable.parameter}
+    '5': {name: constant.numeric}
+...

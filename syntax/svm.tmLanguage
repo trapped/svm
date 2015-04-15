@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>fileTypes</key>
+	<array>
+		<string>svmasm</string>
+	</array>
+	<key>name</key>
+	<string>SVM Assembly</string>
+	<key>patterns</key>
+	<array>
+		<dict>
+			<key>match</key>
+			<string>\#.*$</string>
+			<key>name</key>
+			<string>comment.line</string>
+		</dict>
+		<dict>
+			<key>match</key>
+			<string>[0-9]+</string>
+			<key>name</key>
+			<string>constant.numeric</string>
+		</dict>
+		<dict>
+			<key>match</key>
+			<string>\%[rR][0-9]+</string>
+			<key>name</key>
+			<string>constant.language.registers.general_purpose</string>
+		</dict>
+		<dict>
+			<key>match</key>
+			<string>\b(add|sub|mul|div|mov|ret|call|write)\b</string>
+			<key>name</key>
+			<string>keyword.mnemonic.svm</string>
+		</dict>
+		<dict>
+			<key>captures</key>
+			<dict>
+				<key>1</key>
+				<dict>
+					<key>name</key>
+					<string>entity.name.function</string>
+				</dict>
+				<key>2</key>
+				<dict>
+					<key>name</key>
+					<string>variable.parameter</string>
+				</dict>
+				<key>3</key>
+				<dict>
+					<key>name</key>
+					<string>storage.type</string>
+				</dict>
+				<key>4</key>
+				<dict>
+					<key>name</key>
+					<string>variable.parameter</string>
+				</dict>
+				<key>5</key>
+				<dict>
+					<key>name</key>
+					<string>constant.numeric</string>
+				</dict>
+			</dict>
+			<key>match</key>
+			<string>(?&lt;funcname&gt;\w+):(?: ?(?&lt;argname&gt;\w+)?\.(?&lt;argtype&gt;\w+)(?: *= *(?:,?(?&lt;argvalue&gt;\w+))*)?)?</string>
+			<key>name</key>
+			<string>meta.function</string>
+		</dict>
+	</array>
+	<key>scopeName</key>
+	<string>source.asm.svm</string>
+	<key>uuid</key>
+	<string>0dee0675-21ba-461a-b0f4-2dd46e107831</string>
+</dict>
+</plist>
