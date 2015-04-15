@@ -17,4 +17,3 @@ main: n.int
   mov n, %R0
   call fib %R0, %R0
   write %R0 #high level IO
-

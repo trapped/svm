@@ -1,3 +1,4 @@
 svm/svm
+svm/svm.exe
 *.o
 *.so

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <err.h>
+#include "err.h"
 
 int readfull(FILE* input, char* output) {
   int n = 0;
