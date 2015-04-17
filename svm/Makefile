@@ -12,7 +12,7 @@ all: svm
 	@echo -e "CC  $<"
 	@$(CC) -c $^ -o $@ $(CFLAGS)
 
-svm: main.o
+svm: main.o parser.o
 	@echo -e "LD  $@"
 	@$(CC) $^ -o $@ $(LDFLAGS)
 
@@ -20,4 +20,3 @@ clean:
 	rm -f *.o
 	rm -f *.so
 	rm -f svm
-
