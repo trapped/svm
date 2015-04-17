@@ -9,4 +9,3 @@ _loop: n.int
 
 main:
   call _loop, 0
-
