@@ -35,6 +35,12 @@
 			<string>keyword.mnemonic.svm</string>
 		</dict>
 		<dict>
+			<key>match</key>
+			<string>(\$|\[|\])</string>
+			<key>name</key>
+			<string>keyword.operator</string>
+		</dict>
+		<dict>
 			<key>captures</key>
 			<dict>
 				<key>1</key>
@@ -45,26 +51,31 @@
 				<key>2</key>
 				<dict>
 					<key>name</key>
-					<string>variable.parameter</string>
+					<string>storage.type</string>
 				</dict>
 				<key>3</key>
 				<dict>
 					<key>name</key>
-					<string>storage.type</string>
+					<string>variable.parameter</string>
 				</dict>
 				<key>4</key>
 				<dict>
 					<key>name</key>
-					<string>variable.parameter</string>
+					<string>storage.type</string>
 				</dict>
 				<key>5</key>
+				<dict>
+					<key>name</key>
+					<string>variable.parameter</string>
+				</dict>
+				<key>6</key>
 				<dict>
 					<key>name</key>
 					<string>constant.numeric</string>
 				</dict>
 			</dict>
 			<key>match</key>
-			<string>(?&lt;funcname&gt;\w+):(?: ?(?&lt;argname&gt;\w+)?\.(?&lt;argtype&gt;\w+)(?: *= *(?:,?(?&lt;argvalue&gt;\w+))*)?)?</string>
+			<string>(?&lt;funcname&gt;\w+)(?:\.(?&lt;functype&gt;\w+))?:(?: ?(?&lt;argname&gt;\w+)?\.(?&lt;argtype&gt;\w+)(?: *= *(?:,?(?&lt;argvalue&gt;\w+))*)?)?</string>
 			<key>name</key>
 			<string>meta.function</string>
 		</dict>
