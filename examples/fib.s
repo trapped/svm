@@ -8,7 +8,7 @@ fib.int: n.int #arg is named (used) and type is specified
   mov n, %R1
   sub %R0, 1 #in-place operations
   sub %R1, 2
-  call fib %R0 $ %R0 #in-place call return value: assign the result of... to...
+  call fib %R0 $ %R0 #in-place call return value: assign the result of... to
   call fib %R1 $ %R1
   add %R0, %R1
   ret %R0
