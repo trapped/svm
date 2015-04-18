@@ -1,15 +1,18 @@
+#include <stdlib.h>
 #include <string.h>
 #include "dllist.h"
 
 typedef struct svm_parser {
-  int       source_len;   /* save source length to save cycles  */
-  char*     source;       /* full source text (at pos 0)        */
-  int       pos;          /* current position                   */
-  char*     filename;
-  int       line;
-  int       column;
-  dl_list*  token_stream; /* double linked list for tokens      */
-  int       error;        /* whether an error has occurred      */
+  int             source_len;   /* save source length to save cycles */
+  char*           source;       /* full source text (at pos 0)       */
+  int             pos;          /* current position                  */
+  char*           filename;
+  int             line;
+  int             column;
+  svm_parser_tok  cur_token;
+  dl_list*        token_stream; /* double linked list for tokens     */
+  void*           tok_emit_cb;  /* emit() callback                   */
+  int             error;        /* whether an error has occurred     */
 } svm_parser;
 
 /* returns the next character without advancing the position */
@@ -28,6 +31,14 @@ char svm_parser_next(svm_parser* p) {
   }
   p->pos++;
   return c;
+}
+
+/* moves cur_token to heap and pushes it to token_stream */
+void svm_parser_emit(svm_parser* p, svm_parser_tok* tok) {
+  svm_parser_tok* nv = calloc(1, sizeof(svm_parser_tok));
+  memcpy(nv, tok, sizeof(svm_parser_tok));
+  *tok = { 0 };
+  dl_push(&p->token_stream, nv);
 }
 
 typedef enum {
