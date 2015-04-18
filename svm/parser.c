@@ -70,6 +70,39 @@ typedef struct {
   fprintf(stderr, fmt "\n", __VA_ARGS__); \
 } while(0)
 
+/* identifiers or constants */
+void* svm_parse_ident_const(svm_parser* p) {
+  switch(svm_parser_seek(p)) {
+    case 'A' ... 'Z':
+    case 'a' ... 'z':
+    case '_':
+      if(p->cur_token.type == svm_tok_const) {
+        /* a constant outside quotes is a number, which can't contain
+           letters */
+        p->cur_token.type = svm_tok_ident;
+      } else if(p->cur_token.type == svm_tok_unknown) {
+        /* if it starts with a letter it's for sure an ident */
+        p->cur_token.type = svm_tok_ident;
+      }
+      /* fallthrough */
+    case '0' ... '9':
+      if(p->cur_token.type == svm_tok_unknown) {
+        /* holds as long as there are no letters */
+        p->cur_token.type = svm_tok_const;
+      }
+      /* fallthrough */
+      svm_parser_next(p);
+      p->cur_token.end_pos++;
+      return svm_parse_ident_const;
+    case EOF:
+      svm_parse_error("unexpected EOF");
+      return NULL;
+    default:
+    svm_parser_emit(p, &p->cur_token);
+      return svm_parse_default;
+  }
+}
+
 /* stateful parser - switch considered harmful! */
 int svm_parse(svm_parser* p) {
   if(!p->source_len) {
