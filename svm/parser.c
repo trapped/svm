@@ -39,6 +39,9 @@ void svm_parser_emit(svm_parser* p, svm_parser_tok* tok) {
   memcpy(nv, tok, sizeof(svm_parser_tok));
   *tok = { 0 };
   dl_push(&p->token_stream, nv);
+  char* types[] = { "unknown", "space", "newline", "period", "comma",
+    "colon", "percent", "dollar", "hash", "ident", "const" };
+  fprintf(stderr, "%s\n", types[nv->type]);
 }
 
 typedef enum {
@@ -73,6 +76,7 @@ int svm_parse(svm_parser* p) {
     p->source_len = strlen(p->source);
   }
   p->token_stream = calloc(1, sizeof(dllist));
+  p->cur_token = { 0 };
   void* next_state = svm_parse_default;
   while(next_state) {
     next_state = next_state(p);
