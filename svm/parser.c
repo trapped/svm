@@ -43,11 +43,12 @@ void svm_tok_print(svm_parser* p, svm_parser_tok* t) {
 void svm_parser_emit(svm_parser* p) {
   p->cur_token.end_pos = p->pos;
   svm_parser_tok* nv = calloc(1, sizeof(svm_parser_tok));
-  memcpy(nv, &p->cur_token, sizeof(svm_parser_tok));
+  *nv = p->cur_token;
+  /* it appears that you can't reset using a compound literal directly */
   svm_parser_tok tmp = { 0, .start_pos = p->pos, .end_pos = p->pos };
-  memcpy(&p->cur_token, &tmp, sizeof(svm_parser_tok)); /* it appears that you can't reset using a compound literal */
+  p->cur_token = tmp;
   dl_push(&p->token_stream, nv);
-  svm_tok_print(p, nv);
+  //svm_tok_print(p, nv);
 }
 
 /* emits and advances position */
@@ -194,7 +195,6 @@ int svm_parse(svm_parser* p) {
     }
     p->line = 1;
     p->column = 1;
-    p->token_stream = calloc(1, sizeof(dl_list));
     void* next_state = svm_parse_default;
     while(next_state) {
       next_state = (*(void*(*)())next_state)(p);

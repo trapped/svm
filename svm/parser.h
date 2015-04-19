@@ -46,7 +46,11 @@ typedef struct svm_parser {
 
 char  svm_parser_seek(svm_parser*);
 char  svm_parser_next(svm_parser*);
+char  svm_parser_prev(svm_parser*);
+void  svm_tok_print(svm_parser*, svm_parser_tok*);
 void  svm_parser_emit(svm_parser*);
+void  svm_parser_emit_advance(svm_parser*);
+void  svm_parser_ignore(svm_parser*);
 void  svm_parse_error(svm_parser*, char*, ...);
 void* svm_parse_ident_const(svm_parser*);
 void* svm_parse_comment(svm_parser*);
