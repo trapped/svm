@@ -200,8 +200,5 @@ int svm_parse(svm_parser* p) {
       next_state = (*(void*(*)())next_state)(p);
     }
   }
-  if(p->error) {
-    return 0;
-  }
-  return 1;
+  return !p->error;
 }
