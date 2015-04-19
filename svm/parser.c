@@ -62,14 +62,15 @@ void svm_parser_ignore(svm_parser* p) {
 
 #define svm_parse_error(p, fmt, ...) do { \
   p->error = 1;                           \
-  fprintf(stderr, "%s %d:%d: " fmt "\n",  \
+  fprintf(stderr, "%s:%d:%d: " fmt "\n",  \
     p->filename, p->line, p->column,      \
     ##__VA_ARGS__);                       \
 } while(0)
 
 /* identifiers or constants */
 void* svm_parse_ident_const(svm_parser* p) {
-  switch(svm_parser_seek(p)) {
+  char c;
+  switch(c = svm_parser_next(p)) {
     case 'A' ... 'Z':
     case 'a' ... 'z':
     case '_':
@@ -88,25 +89,25 @@ void* svm_parse_ident_const(svm_parser* p) {
         p->cur_token.type = svm_tok_const;
       }
       /* fallthrough */
-      svm_parser_next(p);
-      p->cur_token.end_pos++;
       return svm_parse_ident_const;
     case EOF:
       svm_parse_error(p, "unexpected EOF");
       return NULL;
     default:
-      svm_parser_emit(p, &p->cur_token);
+      svm_parser_emit(p);
+      svm_parser_prev(p); /* we haven't processed it after all */
       return svm_parse_default;
   }
 }
 
 /* comments */
 void* svm_parse_comment(svm_parser* p) {
-  switch(svm_parser_seek(p)) {
+  switch(svm_parser_next(p)) {
     case '\n':
+      svm_parser_emit(p);
+      svm_parser_prev(p);
       return svm_parse_default;
     default:
-      svm_parser_next(p);
       return svm_parse_comment;
   }
 }
