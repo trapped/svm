@@ -12,6 +12,7 @@ char svm_parser_seek(svm_parser* p) {
 char svm_parser_next(svm_parser* p) {
   char c = svm_parser_seek(p);
   if(c == EOF) {
+    p->pos++;
     return EOF;
   }
   p->column++;
