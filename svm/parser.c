@@ -68,6 +68,7 @@ void svm_parser_ignore(svm_parser* p) {
     p->filename, p->line, p->column,      \
     ##__VA_ARGS__);                       \
 } while(0)
+//backtrace_symbols_fd(1, 1, stdout); only on GNU/Linux?
 
 /* identifiers or constants */
 void* svm_parse_ident_const(svm_parser* p) {
@@ -186,17 +187,18 @@ void* svm_parse_default(svm_parser* p) {
 /* stateful parser - switch considered harmful! */
 int svm_parse(svm_parser* p) {
   if(!p->source) {
-    err(1, "source is null");
-  }
-  if(!p->source_len) {
-    p->source_len = strlen(p->source);
-  }
-  p->line = 1;
-  p->column = 1;
-  p->token_stream = calloc(1, sizeof(dl_list));
-  void* next_state = svm_parse_default;
-  while(next_state) {
-    next_state = (*(void*(*)())next_state)(p);
+    svm_parse_error(p, "source is null");
+  } else {
+    if(!p->source_len) {
+      p->source_len = strlen(p->source);
+    }
+    p->line = 1;
+    p->column = 1;
+    p->token_stream = calloc(1, sizeof(dl_list));
+    void* next_state = svm_parse_default;
+    while(next_state) {
+      next_state = (*(void*(*)())next_state)(p);
+    }
   }
   if(p->error) {
     return 0;

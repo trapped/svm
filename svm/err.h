@@ -6,19 +6,28 @@
 #include <string.h>
 
 #define warn(...) do {                      \
-  int z = fprintf(stderr, ##__VA_ARGS__);     \
+  int z = fprintf(stderr, ##__VA_ARGS__);   \
   if(z > -1) {                              \
     fprintf(stderr, ": ");                  \
   }                                         \
   fprintf(stderr, "%s\n", strerror(errno)); \
 } while(0)
 
+#define warnx(...) do {                     \
+  fprintf(stderr, ##__VA_ARGS__);           \
+} while(0)
+
 #define err(code, ...) do {                 \
-  int z = fprintf(stderr, ##__VA_ARGS__);     \
+  int z = fprintf(stderr, ##__VA_ARGS__);   \
   if(z > -1) {                              \
     fprintf(stderr, ": ");                  \
   }                                         \
   fprintf(stderr, "%s\n", strerror(errno)); \
+  exit(code);                               \
+} while(0)
+
+#define errx(code, ...) do {                \
+  fprintf(stderr, ##__VA_ARGS__);           \
   exit(code);                               \
 } while(0)
 
