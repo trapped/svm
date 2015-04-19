@@ -10,16 +10,16 @@
 
 typedef enum {
   svm_tok_unknown,
-  svm_tok_space,    /*      */
   svm_tok_newline,  /* \r\n */
   svm_tok_period,   /* .    */
   svm_tok_comma,    /* ,    */
   svm_tok_colon,    /* :    */
+  svm_tok_equal,    /* =    */
   svm_tok_percent,  /* %    */
   svm_tok_dollar,   /* $    */
-  svm_tok_hash,     /* #    */
   svm_tok_ident,    /* func */
-  svm_tok_const     /* 1 "" */
+  svm_tok_const,    /* 1 "" */
+  svm_tok_comment   /* #abc */
 } svm_tok_type;
 
 typedef struct {
@@ -44,7 +44,7 @@ typedef struct svm_parser {
 
 char  svm_parser_seek(svm_parser*);
 char  svm_parser_next(svm_parser*);
-void  svm_parser_emit(svm_parser*, svm_parser_tok*);
+void  svm_parser_emit(svm_parser*);
 void  svm_parse_error(svm_parser*, char*, ...);
 void* svm_parse_ident_const(svm_parser*);
 void* svm_parse_comment(svm_parser*);
