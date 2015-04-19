@@ -112,6 +112,67 @@ void* svm_parse_comment(svm_parser* p) {
   }
 }
 
+/* anything (mostly dispatches) */
+void* svm_parse_default(svm_parser* p) {
+  char c;
+  switch(c = svm_parser_next(p)) {
+    case 'A' ... 'Z':
+    case 'a' ... 'z':
+    case '0' ... '9':
+    case '_':
+      svm_parser_prev(p);
+      return svm_parse_ident_const;
+    case '#':
+      p->cur_token.type = svm_tok_comment;
+      /* ignore hash character */
+      svm_parser_ignore(p);
+      return svm_parse_comment;
+    case '\n':
+      p->line++;
+      p->column = 0;
+      p->cur_token.type = svm_tok_newline;
+      svm_parser_emit_advance(p);
+      return svm_parse_default;
+    case '\r':
+      svm_parser_ignore(p);
+      return svm_parse_default;
+    case '.':
+      p->cur_token.type = svm_tok_period;
+      svm_parser_emit_advance(p);
+      return svm_parse_default;
+    case ':':
+      p->cur_token.type = svm_tok_colon;
+      svm_parser_emit_advance(p);
+      return svm_parse_default;
+    case '=':
+      p->cur_token.type = svm_tok_equal;
+      svm_parser_emit_advance(p);
+      return svm_parse_default;
+    case ',':
+      p->cur_token.type = svm_tok_comma;
+      svm_parser_emit_advance(p);
+      return svm_parse_default;
+    case '%':
+      p->cur_token.type = svm_tok_percent;
+      svm_parser_emit_advance(p);
+      return svm_parse_default;
+    case '$':
+      p->cur_token.type = svm_tok_dollar;
+      svm_parser_emit_advance(p);
+      return svm_parse_default;
+    case ' ':
+    case '\t':
+      svm_parser_ignore(p);
+      return svm_parse_default;
+    case EOF:
+      return NULL;
+    default:
+      svm_parse_error(p, "unexpected '%c'", c);
+      return NULL;
+  }
+  return NULL;
+}
+
 /* stateful parser - switch considered harmful! */
 int svm_parse(svm_parser* p) {
   if(!p->source) {
