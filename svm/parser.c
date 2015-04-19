@@ -48,6 +48,16 @@ void svm_parser_emit(svm_parser* p) {
   svm_tok_print(p, nv);
 }
 
+/* emits and advances position */
+void svm_parser_emit_advance(svm_parser* p) {
+  svm_parser_next(p);
+  svm_parser_emit(p);
+  svm_parser_prev(p);
+}
+
+/* ignores the next character */
+void svm_parser_ignore(svm_parser* p) {
+  p->cur_token.start_pos++;
 }
 
 #define svm_parse_error(p, fmt, ...) do { \
