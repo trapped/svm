@@ -6,7 +6,7 @@
 #include <string.h>
 
 #define warn(...) do {                      \
-  int z = fprintf(stderr, __VA_ARGS__);     \
+  int z = fprintf(stderr, ##__VA_ARGS__);     \
   if(z > -1) {                              \
     fprintf(stderr, ": ");                  \
   }                                         \
@@ -14,7 +14,7 @@
 } while(0)
 
 #define err(code, ...) do {                 \
-  int z = fprintf(stderr, __VA_ARGS__);     \
+  int z = fprintf(stderr, ##__VA_ARGS__);     \
   if(z > -1) {                              \
     fprintf(stderr, ": ");                  \
   }                                         \

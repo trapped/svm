@@ -12,7 +12,7 @@ all: svm
 	@echo -e "CC  $<"
 	@$(CC) -c $^ -o $@ $(CFLAGS)
 
-svm: main.o parser.o
+svm: main.o parser.o dl_list.o
 	@echo -e "LD  $@"
 	@$(CC) $^ -o $@ $(LDFLAGS)
 
