@@ -30,6 +30,13 @@ char svm_parser_prev(svm_parser* p) {
   return p->source[p->pos];
 }
 
+void svm_tok_print(svm_parser* p, svm_parser_tok* t) {
+  char* types[] = { "unknown", "newline", "period", "comma",
+    "colon", "equal", "percent", "dollar", "ident", "const", "comment" };
+  fprintf(stderr, "%s:%d-%d(%d): '%.*s'\n", types[t->type], t->start_pos, t->end_pos,
+    t->end_pos - t->start_pos, t->end_pos - t->start_pos, &p->source[t->start_pos]);
+}
+
 /* moves cur_token to heap and pushes it to token_stream */
 void svm_parser_emit(svm_parser* p, svm_parser_tok* tok) {
   svm_parser_tok* nv = calloc(1, sizeof(svm_parser_tok));
