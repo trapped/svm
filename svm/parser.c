@@ -38,15 +38,16 @@ void svm_tok_print(svm_parser* p, svm_parser_tok* t) {
 }
 
 /* moves cur_token to heap and pushes it to token_stream */
-void svm_parser_emit(svm_parser* p, svm_parser_tok* tok) {
+void svm_parser_emit(svm_parser* p) {
+  p->cur_token.end_pos = p->pos;
   svm_parser_tok* nv = calloc(1, sizeof(svm_parser_tok));
-  memcpy(nv, tok, sizeof(svm_parser_tok));
-  svm_parser_tok tmp = { 0 };
-  memcpy(tok, &tmp, sizeof(svm_parser_tok)); /* it appears that you can't reset using a compound literal */
+  memcpy(nv, &p->cur_token, sizeof(svm_parser_tok));
+  svm_parser_tok tmp = { 0, .start_pos = p->pos, .end_pos = p->pos };
+  memcpy(&p->cur_token, &tmp, sizeof(svm_parser_tok)); /* it appears that you can't reset using a compound literal */
   dl_push(&p->token_stream, nv);
-  char* types[] = { "unknown", "space", "newline", "period", "comma",
-    "colon", "percent", "dollar", "hash", "ident", "const" };
-  fprintf(stderr, "%s\n", types[nv->type]);
+  svm_tok_print(p, nv);
+}
+
 }
 
 #define svm_parse_error(p, fmt, ...) do { \
