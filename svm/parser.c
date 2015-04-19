@@ -120,6 +120,8 @@ int svm_parse(svm_parser* p) {
   if(!p->source_len) {
     p->source_len = strlen(p->source);
   }
+  p->line = 1;
+  p->column = 1;
   p->token_stream = calloc(1, sizeof(dl_list));
   void* next_state = svm_parse_default;
   while(next_state) {
