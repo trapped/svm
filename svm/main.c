@@ -57,10 +57,15 @@ int main(int argc, char** argv) {
     input = stdin;
   }
   char* code = readfull(input);
-  printf("%s\n", code);
   int size = strlen(code);
-  printf("size: %d\n", size);
   svm_parser p = { .source_len = size, .source = code, .filename = argv[1], 0 };
-  return svm_parse(&p);
+  if(!svm_parse(&p)) {
+    errx(1, "compilation failed");
+  }
+  dl_list* node = p.token_stream->first;
+  while(node) {
+    svm_tok_print(&p, node->value);
+    node = node->next;
+  }
+  return 0;
 }
-
