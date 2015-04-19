@@ -17,6 +17,8 @@ typedef enum {
   svm_tok_equal,    /* =    */
   svm_tok_percent,  /* %    */
   svm_tok_dollar,   /* $    */
+  svm_tok_opbrak,   /* [    */
+  svm_tok_clbrak,   /* ]    */
   svm_tok_ident,    /* func */
   svm_tok_const,    /* 1 "" */
   svm_tok_comment   /* #abc */

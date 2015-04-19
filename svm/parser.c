@@ -32,8 +32,8 @@ char svm_parser_prev(svm_parser* p) {
 
 /* prints a token to stderr */
 void svm_tok_print(svm_parser* p, svm_parser_tok* t) {
-  char* types[] = { "unknown", "newline", "period", "comma",
-    "colon", "equal", "percent", "dollar", "ident", "const", "comment" };
+  char* types[] = { "unknown", "newline", "period", "comma", "colon", "equal",
+  "percent", "dollar", "opbrak", "clbrak", "ident", "const", "comment" };
   fprintf(stderr, "%s:%d-%d(%d): '%.*s'\n", types[t->type], t->start_pos, t->end_pos,
     t->end_pos - t->start_pos, t->type == svm_tok_newline ? 2 : t->end_pos - t->start_pos,
     t->type == svm_tok_newline ? "\\n" : &p->source[t->start_pos]);
@@ -160,6 +160,14 @@ void* svm_parse_default(svm_parser* p) {
       return svm_parse_default;
     case '$':
       p->cur_token.type = svm_tok_dollar;
+      svm_parser_emit_advance(p);
+      return svm_parse_default;
+    case '[':
+      p->cur_token.type = svm_tok_opbrak;
+      svm_parser_emit_advance(p);
+      return svm_parse_default;
+    case ']':
+      p->cur_token.type = svm_tok_clbrak;
       svm_parser_emit_advance(p);
       return svm_parse_default;
     case ' ':
