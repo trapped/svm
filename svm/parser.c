@@ -20,6 +20,16 @@ char svm_parser_next(svm_parser* p) {
   return c;
 }
 
+/* goes back a character */
+char svm_parser_prev(svm_parser* p) {
+  if(p->pos-1 < 0) {
+    return EOF;
+  }
+  p->column--;
+  p->pos--;
+  return p->source[p->pos];
+}
+
 /* moves cur_token to heap and pushes it to token_stream */
 void svm_parser_emit(svm_parser* p, svm_parser_tok* tok) {
   svm_parser_tok* nv = calloc(1, sizeof(svm_parser_tok));
