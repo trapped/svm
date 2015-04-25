@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "err.h"
-#include "parser.h"
+#include "lexer.h"
 
 char* readfull(FILE* input) {
   char* output;
@@ -58,8 +58,8 @@ int main(int argc, char** argv) {
   }
   char* code = readfull(input);
   int size = strlen(code);
-  svm_parser p = { .source_len = size, .source = code, .filename = argv[1], 0 };
-  if(!svm_parse(&p)) {
+  svm_lexer p = { .source_len = size, .source = code, .filename = argv[1], 0 };
+  if(!svm_lex(&p)) {
     errx(1, "compilation failed");
   }
   dl_list* node = p.token_stream->first;
