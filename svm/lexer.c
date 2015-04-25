@@ -104,7 +104,7 @@ void* lex_ident_const(svm_lexer* p) {
     default:
       emit(p);
       previous(p); /* we haven't processed it after all */
-      return svm_lex_default;
+      return lex_default;
   }
 }
 
@@ -114,9 +114,9 @@ void* lex_comment(svm_lexer* p) {
     case '\n':
       emit(p);
       previous(p); /* let the \n be lexd */
-      return svm_lex_default;
+      return lex_default;
     default:
-      return svm_lex_comment;
+      return lex_comment;
   }
 }
 
@@ -129,57 +129,57 @@ void* lex_default(svm_lexer* p) {
     case '0' ... '9':
     case '_':
       previous(p);
-      return svm_lex_ident_const;
+      return lex_ident_const;
     case '#':
       p->cur_token.type = svm_tok_comment;
       /* ignore hash character */
       ignore(p);
-      return svm_lex_comment;
+      return lex_comment;
     case '\n':
       p->line++;
       p->column = 0;
       p->cur_token.type = svm_tok_newline;
       emit_advance(p);
-      return svm_lex_default;
+      return lex_default;
     case '\r':
       ignore(p);
-      return svm_lex_default;
+      return lex_default;
     case '.':
       p->cur_token.type = svm_tok_period;
       emit_advance(p);
-      return svm_lex_default;
+      return lex_default;
     case ':':
       p->cur_token.type = svm_tok_colon;
       emit_advance(p);
-      return svm_lex_default;
+      return lex_default;
     case '=':
       p->cur_token.type = svm_tok_equal;
       emit_advance(p);
-      return svm_lex_default;
+      return lex_default;
     case ',':
       p->cur_token.type = svm_tok_comma;
       emit_advance(p);
-      return svm_lex_default;
+      return lex_default;
     case '%':
       p->cur_token.type = svm_tok_percent;
       emit_advance(p);
-      return svm_lex_default;
+      return lex_default;
     case '$':
       p->cur_token.type = svm_tok_dollar;
       emit_advance(p);
-      return svm_lex_default;
+      return lex_default;
     case '[':
       p->cur_token.type = svm_tok_opbrak;
       emit_advance(p);
-      return svm_lex_default;
+      return lex_default;
     case ']':
       p->cur_token.type = svm_tok_clbrak;
       emit_advance(p);
-      return svm_lex_default;
+      return lex_default;
     case ' ':
     case '\t':
       ignore(p);
-      return svm_lex_default;
+      return lex_default;
     case EOF:
       return NULL;
     default:
@@ -199,7 +199,7 @@ int svm_lex(svm_lexer* p) {
     }
     p->line = 1;
     p->column = 1;
-    void* next_state = svm_lex_default;
+    void* next_state = lex_default;
     while(next_state) {
       next_state = (*(void*(*)())next_state)(p);
     }
