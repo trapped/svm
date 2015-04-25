@@ -1,5 +1,5 @@
-#ifndef SVM_PARSER_H
-#define SVM_PARSER_H
+#ifndef SVM_LEXER_H
+#define SVM_LEXER_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,32 +29,22 @@ typedef struct {
   int           start_pos;
   int           end_pos;
   /* value is sliced from source text */
-} svm_parser_tok;
+} svm_lexer_tok;
 
-typedef struct svm_parser {
+typedef struct svm_lexer {
   int             source_len;   /* save source length to save cycles */
   char*           source;       /* full source text (at pos 0)       */
   int             pos;          /* current position                  */
   char*           filename;
   int             line;
   int             column;
-  svm_parser_tok  cur_token;
+  svm_lexer_tok  cur_token;
   dl_list*        token_stream; /* double linked list for tokens     */
   void*           tok_emit_cb;  /* emit() callback                   */
   int             error;        /* whether an error has occurred     */
-} svm_parser;
+} svm_lexer;
 
-char  svm_parser_seek(svm_parser*);
-char  svm_parser_next(svm_parser*);
-char  svm_parser_prev(svm_parser*);
-void  svm_tok_print(svm_parser*, svm_parser_tok*);
-void  svm_parser_emit(svm_parser*);
-void  svm_parser_emit_advance(svm_parser*);
-void  svm_parser_ignore(svm_parser*);
-void  svm_parse_error(svm_parser*, char*, ...);
-void* svm_parse_ident_const(svm_parser*);
-void* svm_parse_comment(svm_parser*);
-void* svm_parse_default(svm_parser*);
-int   svm_parse(svm_parser*);
+void  svm_tok_print(svm_lexer*, svm_lexer_tok*);
+int   svm_parse(svm_lexer*);
 
 #endif

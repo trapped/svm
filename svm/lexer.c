@@ -1,7 +1,7 @@
-#include "parser.h"
+#include "lexer.h"
 
 /* returns the next character without advancing the position */
-char svm_parser_seek(svm_parser* p) {
+char seek(svm_lexer* p) {
   if(p->pos+1 >= p->source_len) {
     return EOF;
   }
@@ -9,8 +9,8 @@ char svm_parser_seek(svm_parser* p) {
 }
 
 /* returns the next character and advances the position */
-char svm_parser_next(svm_parser* p) {
-  char c = svm_parser_seek(p);
+char next(svm_lexer* p) {
+  char c = seek(p);
   if(c == EOF) {
     p->pos++;
     return EOF;
@@ -21,7 +21,7 @@ char svm_parser_next(svm_parser* p) {
 }
 
 /* goes back a character */
-char svm_parser_prev(svm_parser* p) {
+char previous(svm_lexer* p) {
   if(p->pos-1 < 0) {
     return EOF;
   }
@@ -31,7 +31,7 @@ char svm_parser_prev(svm_parser* p) {
 }
 
 /* prints a token to stderr */
-void svm_tok_print(svm_parser* p, svm_parser_tok* t) {
+void svm_tok_print(svm_lexer* p, svm_lexer_tok* t) {
   char* types[] = { "unknown", "newline", "period", "comma", "colon", "equal",
   "percent", "dollar", "opbrak", "clbrak", "ident", "const", "comment" };
   fprintf(stderr, "%s:%d-%d(%d): '%.*s'\n", types[t->type], t->start_pos, t->end_pos,
@@ -40,30 +40,30 @@ void svm_tok_print(svm_parser* p, svm_parser_tok* t) {
 }
 
 /* moves cur_token to heap and pushes it to token_stream */
-void svm_parser_emit(svm_parser* p) {
+void emit(svm_lexer* p) {
   p->cur_token.end_pos = p->pos;
-  svm_parser_tok* nv = calloc(1, sizeof(svm_parser_tok));
+  svm_lexer_tok* nv = calloc(1, sizeof(svm_lexer_tok));
   *nv = p->cur_token;
   /* it appears that you can't reset using a compound literal directly */
-  svm_parser_tok tmp = { 0, .start_pos = p->pos, .end_pos = p->pos };
+  svm_lexer_tok tmp = { 0, .start_pos = p->pos, .end_pos = p->pos };
   p->cur_token = tmp;
   dl_push(&p->token_stream, nv);
   //svm_tok_print(p, nv);
 }
 
 /* emits and advances position */
-void svm_parser_emit_advance(svm_parser* p) {
-  svm_parser_next(p);
-  svm_parser_emit(p);
-  svm_parser_prev(p);
+void emit_advance(svm_lexer* p) {
+  next(p);
+  emit(p);
+  previous(p);
 }
 
 /* ignores the next character */
-void svm_parser_ignore(svm_parser* p) {
+void ignore(svm_lexer* p) {
   p->cur_token.start_pos++;
 }
 
-#define svm_parse_error(p, fmt, ...) do { \
+#define lex_error(p, fmt, ...) do { \
   p->error = 1;                           \
   fprintf(stderr, "%s:%d:%d: " fmt "\n",  \
     p->filename, p->line, p->column,      \
@@ -72,9 +72,9 @@ void svm_parser_ignore(svm_parser* p) {
 //backtrace_symbols_fd(1, 1, stdout); only on GNU/Linux?
 
 /* identifiers or constants */
-void* svm_parse_ident_const(svm_parser* p) {
+void* lex_ident_const(svm_lexer* p) {
   char c;
-  switch(c = svm_parser_next(p)) {
+  switch(c = next(p)) {
     case 'A' ... 'Z':
     case 'a' ... 'z':
     case '_':
@@ -93,109 +93,109 @@ void* svm_parse_ident_const(svm_parser* p) {
         p->cur_token.type = svm_tok_const;
       }
       /* fallthrough */
-      return svm_parse_ident_const;
+      return lex_ident_const;
     case EOF:
-      svm_parse_error(p, "unexpected EOF");
+      lex_error(p, "unexpected EOF");
       return NULL;
     default:
-      svm_parser_emit(p);
-      svm_parser_prev(p); /* we haven't processed it after all */
-      return svm_parse_default;
+      emit(p);
+      previous(p); /* we haven't processed it after all */
+      return svm_lex_default;
   }
 }
 
 /* comments */
-void* svm_parse_comment(svm_parser* p) {
-  switch(svm_parser_next(p)) {
+void* lex_comment(svm_lexer* p) {
+  switch(next(p)) {
     case '\n':
-      svm_parser_emit(p);
-      svm_parser_prev(p); /* let the \n be parsed */
-      return svm_parse_default;
+      emit(p);
+      previous(p); /* let the \n be lexd */
+      return svm_lex_default;
     default:
-      return svm_parse_comment;
+      return svm_lex_comment;
   }
 }
 
 /* anything (mostly dispatches) */
-void* svm_parse_default(svm_parser* p) {
+void* lex_default(svm_lexer* p) {
   char c;
-  switch(c = svm_parser_next(p)) {
+  switch(c = next(p)) {
     case 'A' ... 'Z':
     case 'a' ... 'z':
     case '0' ... '9':
     case '_':
-      svm_parser_prev(p);
-      return svm_parse_ident_const;
+      previous(p);
+      return svm_lex_ident_const;
     case '#':
       p->cur_token.type = svm_tok_comment;
       /* ignore hash character */
-      svm_parser_ignore(p);
-      return svm_parse_comment;
+      ignore(p);
+      return svm_lex_comment;
     case '\n':
       p->line++;
       p->column = 0;
       p->cur_token.type = svm_tok_newline;
-      svm_parser_emit_advance(p);
-      return svm_parse_default;
+      emit_advance(p);
+      return svm_lex_default;
     case '\r':
-      svm_parser_ignore(p);
-      return svm_parse_default;
+      ignore(p);
+      return svm_lex_default;
     case '.':
       p->cur_token.type = svm_tok_period;
-      svm_parser_emit_advance(p);
-      return svm_parse_default;
+      emit_advance(p);
+      return svm_lex_default;
     case ':':
       p->cur_token.type = svm_tok_colon;
-      svm_parser_emit_advance(p);
-      return svm_parse_default;
+      emit_advance(p);
+      return svm_lex_default;
     case '=':
       p->cur_token.type = svm_tok_equal;
-      svm_parser_emit_advance(p);
-      return svm_parse_default;
+      emit_advance(p);
+      return svm_lex_default;
     case ',':
       p->cur_token.type = svm_tok_comma;
-      svm_parser_emit_advance(p);
-      return svm_parse_default;
+      emit_advance(p);
+      return svm_lex_default;
     case '%':
       p->cur_token.type = svm_tok_percent;
-      svm_parser_emit_advance(p);
-      return svm_parse_default;
+      emit_advance(p);
+      return svm_lex_default;
     case '$':
       p->cur_token.type = svm_tok_dollar;
-      svm_parser_emit_advance(p);
-      return svm_parse_default;
+      emit_advance(p);
+      return svm_lex_default;
     case '[':
       p->cur_token.type = svm_tok_opbrak;
-      svm_parser_emit_advance(p);
-      return svm_parse_default;
+      emit_advance(p);
+      return svm_lex_default;
     case ']':
       p->cur_token.type = svm_tok_clbrak;
-      svm_parser_emit_advance(p);
-      return svm_parse_default;
+      emit_advance(p);
+      return svm_lex_default;
     case ' ':
     case '\t':
-      svm_parser_ignore(p);
-      return svm_parse_default;
+      ignore(p);
+      return svm_lex_default;
     case EOF:
       return NULL;
     default:
-      svm_parse_error(p, "unexpected '%c'", c);
+      lex_error(p, "unexpected '%c'", c);
       return NULL;
   }
   return NULL;
 }
 
-/* stateful parser - switch considered harmful! */
-int svm_parse(svm_parser* p) {
+/* stateful lexer - switch considered harmful! */
+int svm_lex(svm_lexer* p) {
   if(!p->source) {
-    svm_parse_error(p, "source is null");
+    lex_error(p, "source is null");
   } else {
     if(!p->source_len) {
       p->source_len = strlen(p->source);
     }
     p->line = 1;
     p->column = 1;
-    void* next_state = svm_parse_default;
+    void* next_state = svm_lex_default;
     while(next_state) {
       next_state = (*(void*(*)())next_state)(p);
     }
