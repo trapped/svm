@@ -45,6 +45,6 @@ typedef struct svm_lexer {
 } svm_lexer;
 
 void  svm_tok_print(svm_lexer*, svm_lexer_tok*);
-int   svm_parse(svm_lexer*);
+int   svm_lex(svm_lexer*);
 
 #endif

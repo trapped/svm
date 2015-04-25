@@ -1,5 +1,9 @@
 #include "lexer.h"
 
+void* lex_ident_const(svm_lexer*);
+void* lex_comment(svm_lexer*);
+void* lex_default(svm_lexer*);
+
 /* returns the next character without advancing the position */
 char seek(svm_lexer* p) {
   if(p->pos+1 >= p->source_len) {
@@ -30,6 +34,11 @@ char previous(svm_lexer* p) {
   return p->source[p->pos];
 }
 
+/* ignores the next character */
+void ignore(svm_lexer* p) {
+  p->cur_token.start_pos++;
+}
+
 /* prints a token to stderr */
 void svm_tok_print(svm_lexer* p, svm_lexer_tok* t) {
   char* types[] = { "unknown", "newline", "period", "comma", "colon", "equal",
@@ -56,11 +65,6 @@ void emit_advance(svm_lexer* p) {
   next(p);
   emit(p);
   previous(p);
-}
-
-/* ignores the next character */
-void ignore(svm_lexer* p) {
-  p->cur_token.start_pos++;
 }
 
 #define lex_error(p, fmt, ...) do { \
