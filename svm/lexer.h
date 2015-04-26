@@ -38,7 +38,7 @@ typedef struct svm_lexer {
   char*           filename;
   int             line;
   int             column;
-  svm_lexer_tok  cur_token;
+  svm_lexer_tok   cur_token;
   dl_list*        token_stream; /* double linked list for tokens     */
   void*           tok_emit_cb;  /* emit() callback                   */
   int             error;        /* whether an error has occurred     */

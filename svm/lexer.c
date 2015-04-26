@@ -5,115 +5,115 @@ void* lex_comment(svm_lexer*);
 void* lex_default(svm_lexer*);
 
 /* returns the next character without advancing the position */
-char seek(svm_lexer* p) {
-  if(p->pos+1 >= p->source_len) {
+char seek(svm_lexer* l) {
+  if(l->pos+1 >= l->source_len) {
     return EOF;
   }
-  return p->source[p->pos+1];
+  return l->source[l->pos+1];
 }
 
 /* returns the next character and advances the position */
-char next(svm_lexer* p) {
-  char c = seek(p);
+char next(svm_lexer* l) {
+  char c = seek(l);
   if(c == EOF) {
-    p->pos++;
+    l->pos++;
     return EOF;
   }
-  p->column++;
-  p->pos++;
+  l->column++;
+  l->pos++;
   return c;
 }
 
 /* goes back a character */
-char previous(svm_lexer* p) {
-  if(p->pos-1 < 0) {
+char previous(svm_lexer* l) {
+  if(l->pos-1 < 0) {
     return EOF;
   }
-  p->column--;
-  p->pos--;
-  return p->source[p->pos];
+  l->column--;
+  l->pos--;
+  return l->source[l->pos];
 }
 
 /* ignores the next character */
-void ignore(svm_lexer* p) {
-  p->cur_token.start_pos++;
+void ignore(svm_lexer* l) {
+  l->cur_token.start_pos++;
 }
 
 /* prints a token to stderr */
-void svm_tok_print(svm_lexer* p, svm_lexer_tok* t) {
+void svm_tok_print(svm_lexer* l, svm_lexer_tok* t) {
   char* types[] = { "unknown", "newline", "period", "comma", "colon", "equal",
   "percent", "dollar", "opbrak", "clbrak", "ident", "const", "comment" };
   fprintf(stderr, "%s:%d-%d(%d): '%.*s'\n", types[t->type], t->start_pos, t->end_pos,
     t->end_pos - t->start_pos, t->type == svm_tok_newline ? 2 : t->end_pos - t->start_pos,
-    t->type == svm_tok_newline ? "\\n" : &p->source[t->start_pos]);
+    t->type == svm_tok_newline ? "\\n" : &l->source[t->start_pos]);
 }
 
 /* moves cur_token to heap and pushes it to token_stream */
-void emit(svm_lexer* p) {
-  p->cur_token.end_pos = p->pos;
+void emit(svm_lexer* l) {
+  l->cur_token.end_pos = l->pos;
   svm_lexer_tok* nv = calloc(1, sizeof(svm_lexer_tok));
-  *nv = p->cur_token;
+  *nv = l->cur_token;
   /* it appears that you can't reset using a compound literal directly */
-  svm_lexer_tok tmp = { 0, .start_pos = p->pos, .end_pos = p->pos };
-  p->cur_token = tmp;
-  dl_push(&p->token_stream, nv);
-  //svm_tok_print(p, nv);
+  svm_lexer_tok tmp = { 0, .start_pos = l->pos, .end_pos = l->pos };
+  l->cur_token = tmp;
+  dl_push(&l->token_stream, nv);
+  //svm_tok_print(l, nv);
 }
 
 /* emits and advances position */
-void emit_advance(svm_lexer* p) {
-  next(p);
-  emit(p);
-  previous(p);
+void emit_advance(svm_lexer* l) {
+  next(l);
+  emit(l);
+  previous(l);
 }
 
-#define lex_error(p, fmt, ...) do { \
-  p->error = 1;                           \
+#define lex_error(l, fmt, ...) do { \
+  l->error = 1;                           \
   fprintf(stderr, "%s:%d:%d: " fmt "\n",  \
-    p->filename, p->line, p->column,      \
+    l->filename, l->line, l->column,      \
     ##__VA_ARGS__);                       \
 } while(0)
 //backtrace_symbols_fd(1, 1, stdout); only on GNU/Linux?
 
 /* identifiers or constants */
-void* lex_ident_const(svm_lexer* p) {
+void* lex_ident_const(svm_lexer* l) {
   char c;
-  switch(c = next(p)) {
+  switch(c = next(l)) {
     case 'A' ... 'Z':
     case 'a' ... 'z':
     case '_':
-      if(p->cur_token.type == svm_tok_const) {
+      if(l->cur_token.type == svm_tok_const) {
         /* a constant outside quotes is a number, which can't contain
            letters */
-        p->cur_token.type = svm_tok_ident;
-      } else if(p->cur_token.type == svm_tok_unknown) {
+        l->cur_token.type = svm_tok_ident;
+      } else if(l->cur_token.type == svm_tok_unknown) {
         /* if it starts with a letter it's for sure an ident */
-        p->cur_token.type = svm_tok_ident;
+        l->cur_token.type = svm_tok_ident;
       }
       /* fallthrough */
     case '0' ... '9':
-      if(p->cur_token.type == svm_tok_unknown) {
+      if(l->cur_token.type == svm_tok_unknown) {
         /* holds as long as there are no letters */
-        p->cur_token.type = svm_tok_const;
+        l->cur_token.type = svm_tok_const;
       }
       /* fallthrough */
       return lex_ident_const;
     case EOF:
-      lex_error(p, "unexpected EOF");
+      lex_error(l, "unexpected EOF");
       return NULL;
     default:
-      emit(p);
-      previous(p); /* we haven't processed it after all */
+      emit(l);
+      previous(l); /* we haven't processed it after all */
       return lex_default;
   }
 }
 
 /* comments */
-void* lex_comment(svm_lexer* p) {
-  switch(next(p)) {
+void* lex_comment(svm_lexer* l) {
+  switch(next(l)) {
     case '\n':
-      emit(p);
-      previous(p); /* let the \n be lexd */
+      emit(l);
+      previous(l); /* let the \n be lexd */
       return lex_default;
     default:
       return lex_comment;
@@ -121,88 +121,88 @@ void* lex_comment(svm_lexer* p) {
 }
 
 /* anything (mostly dispatches) */
-void* lex_default(svm_lexer* p) {
+void* lex_default(svm_lexer* l) {
   char c;
-  switch(c = next(p)) {
+  switch(c = next(l)) {
     case 'A' ... 'Z':
     case 'a' ... 'z':
     case '0' ... '9':
     case '_':
-      previous(p);
+      previous(l);
       return lex_ident_const;
     case '#':
-      p->cur_token.type = svm_tok_comment;
+      l->cur_token.type = svm_tok_comment;
       /* ignore hash character */
-      ignore(p);
+      ignore(l);
       return lex_comment;
     case '\n':
-      p->line++;
-      p->column = 0;
-      p->cur_token.type = svm_tok_newline;
-      emit_advance(p);
+      l->line++;
+      l->column = 0;
+      l->cur_token.type = svm_tok_newline;
+      emit_advance(l);
       return lex_default;
     case '\r':
-      ignore(p);
+      ignore(l);
       return lex_default;
     case '.':
-      p->cur_token.type = svm_tok_period;
-      emit_advance(p);
+      l->cur_token.type = svm_tok_period;
+      emit_advance(l);
       return lex_default;
     case ':':
-      p->cur_token.type = svm_tok_colon;
-      emit_advance(p);
+      l->cur_token.type = svm_tok_colon;
+      emit_advance(l);
       return lex_default;
     case '=':
-      p->cur_token.type = svm_tok_equal;
-      emit_advance(p);
+      l->cur_token.type = svm_tok_equal;
+      emit_advance(l);
       return lex_default;
     case ',':
-      p->cur_token.type = svm_tok_comma;
-      emit_advance(p);
+      l->cur_token.type = svm_tok_comma;
+      emit_advance(l);
       return lex_default;
     case '%':
-      p->cur_token.type = svm_tok_percent;
-      emit_advance(p);
+      l->cur_token.type = svm_tok_percent;
+      emit_advance(l);
       return lex_default;
     case '$':
-      p->cur_token.type = svm_tok_dollar;
-      emit_advance(p);
+      l->cur_token.type = svm_tok_dollar;
+      emit_advance(l);
       return lex_default;
     case '[':
-      p->cur_token.type = svm_tok_opbrak;
-      emit_advance(p);
+      l->cur_token.type = svm_tok_opbrak;
+      emit_advance(l);
       return lex_default;
     case ']':
-      p->cur_token.type = svm_tok_clbrak;
-      emit_advance(p);
+      l->cur_token.type = svm_tok_clbrak;
+      emit_advance(l);
       return lex_default;
     case ' ':
     case '\t':
-      ignore(p);
+      ignore(l);
       return lex_default;
     case EOF:
       return NULL;
     default:
-      lex_error(p, "unexpected '%c'", c);
+      lex_error(l, "unexpected '%c'", c);
       return NULL;
   }
   return NULL;
 }
 
 /* stateful lexer - switch considered harmful! */
-int svm_lex(svm_lexer* p) {
-  if(!p->source) {
-    lex_error(p, "source is null");
+int svm_lex(svm_lexer* l) {
+  if(!l->source) {
+    lex_error(l, "source is null");
   } else {
-    if(!p->source_len) {
-      p->source_len = strlen(p->source);
+    if(!l->source_len) {
+      l->source_len = strlen(l->source);
     }
-    p->line = 1;
-    p->column = 1;
+    l->line = 1;
+    l->column = 1;
     void* next_state = lex_default;
     while(next_state) {
-      next_state = (*(void*(*)())next_state)(p);
+      next_state = (*(void*(*)())next_state)(l);
     }
   }
-  return !p->error;
+  return !l->error;
 }
