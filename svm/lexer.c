@@ -39,18 +39,28 @@ void ignore(svm_lexer* l) {
   l->cur_token.start_pos++;
 }
 
+/* token type to string */
+char* svm_tok_str(svm_lexer_tok* t) {
+  static char* types[] = { "unknown", "newline", "period", "comma", "colon",
+    "equal", "percent", "dollar", "opbrak", "clbrak", "ident", "const",
+    "comment" };
+  return types[t->type];
+}
+
 /* prints a token to stderr */
 void svm_tok_print(svm_lexer* l, svm_lexer_tok* t) {
-  char* types[] = { "unknown", "newline", "period", "comma", "colon", "equal",
-  "percent", "dollar", "opbrak", "clbrak", "ident", "const", "comment" };
-  fprintf(stderr, "%s:%d-%d(%d): '%.*s'\n", types[t->type], t->start_pos, t->end_pos,
-    t->end_pos - t->start_pos, t->type == svm_tok_newline ? 2 : t->end_pos - t->start_pos,
+  fprintf(stderr, "%s:%d-%d(%d): '%.*s'\n", svm_tok_str(t), t->start_pos,
+    t->end_pos, t->end_pos - t->start_pos,
+    t->type == svm_tok_newline ? 2 : t->end_pos - t->start_pos,
     t->type == svm_tok_newline ? "\\n" : &l->source[t->start_pos]);
 }
 
 /* moves cur_token to heap and pushes it to token_stream */
 void emit(svm_lexer* l) {
   l->cur_token.end_pos = l->pos;
+  l->cur_token.line = l->line;
+  l->cur_token.column =
+    l->column - (l->cur_token.end_pos - l->cur_token.start_pos);
   svm_lexer_tok* nv = calloc(1, sizeof(svm_lexer_tok));
   *nv = l->cur_token;
   /* it appears that you can't reset using a compound literal directly */
@@ -67,7 +77,7 @@ void emit_advance(svm_lexer* l) {
   previous(l);
 }
 
-#define lex_error(l, fmt, ...) do { \
+#define lex_error(l, fmt, ...) do {       \
   l->error = 1;                           \
   fprintf(stderr, "%s:%d:%d: " fmt "\n",  \
     l->filename, l->line, l->column,      \

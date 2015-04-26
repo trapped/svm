@@ -28,6 +28,8 @@ typedef struct {
   svm_tok_type  type;
   int           start_pos;
   int           end_pos;
+  int           line;
+  int           column;
   /* value is sliced from source text */
 } svm_lexer_tok;
 
@@ -44,6 +46,7 @@ typedef struct svm_lexer {
   int             error;        /* whether an error has occurred     */
 } svm_lexer;
 
+char* svm_tok_str(svm_lexer_tok*);
 void  svm_tok_print(svm_lexer*, svm_lexer_tok*);
 int   svm_lex(svm_lexer*);
 
