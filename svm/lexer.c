@@ -123,7 +123,7 @@ void* lex_comment(svm_lexer* l) {
   switch(next(l)) {
     case '\n':
       emit(l);
-      previous(l); /* let the \n be lexd */
+      previous(l); /* let the \n be lexed */
       return lex_default;
     default:
       return lex_comment;
